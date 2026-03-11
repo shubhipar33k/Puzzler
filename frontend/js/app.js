@@ -12,6 +12,7 @@ const state = {
     elapsedSeconds: 0,
     hintCount: 0,
     board: null,
+    currentDifficultyBand: 'medium',
 };
 
 /* ── DOM refs ─────────────────────────────────────────── */
@@ -46,16 +47,16 @@ function navigateTo(pageId) {
 }
 
 /* ── Play page ────────────────────────────────────────── */
-function initPlayPage() {
+async function initPlayPage() {
     // Set date subtitle
     const now = new Date();
     $('play-date').textContent = now.toLocaleDateString('en-US', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     });
 
-    // Build the Sudoku board if not already built
+    // Fetch a real puzzle from the API (only once per session)
     if (!state.board) {
-        state.board = new SudokuBoard('sudoku-board');
+        await loadNewPuzzle('medium');
     }
 
     // Start the timer
@@ -90,9 +91,22 @@ function initPlayPage() {
         showToast('Board reset ↺');
     });
 
+    // New puzzle button (if present)
+    const btnNew = $('btn-new-puzzle');
+    if (btnNew) {
+        btnNew.addEventListener('click', async () => {
+            state.board = null;
+            resetTimer();
+            stopTimer();
+            const band = state.currentDifficultyBand || 'medium';
+            await loadNewPuzzle(band);
+            startTimer();
+        });
+    }
+
     // Listen for sudoku events
     document.addEventListener('sudoku:error', (e) => {
-        // Logged to session API on Day 5
+        // Will be sent to session API on Day 5
         console.log('Error at', e.detail);
     });
 
@@ -106,6 +120,41 @@ function initPlayPage() {
         $('game-status').innerHTML = '<span class="status-pill" style="background:var(--accent-green-bg);color:#3a7a36;border-color:var(--accent-green)">✓ Solved!</span>';
         showToast(`🎉 Solved in ${formatTime(time)}!`, 'success');
     });
+}
+
+/**
+ * Fetch a puzzle from the API and initialise the SudokuBoard.
+ * Falls back to the offline DEMO_PUZZLE if the API is unreachable.
+ * @param {string} band - difficulty band (beginner|easy|medium|hard|expert)
+ */
+async function loadNewPuzzle(band = 'medium') {
+    state.currentDifficultyBand = band;
+
+    // Show loading state
+    const boardEl = $('sudoku-board');
+    if (boardEl) {
+        boardEl.innerHTML = '<div class="board-loading">Generating puzzle…</div>';
+    }
+
+    try {
+        const data = await apiGeneratePuzzle('sudoku', band);
+        // data.data.grid is a flat 81-element list from the API
+        const puzzle2D = flatTo2D(data.data.grid);
+        const solution2D = flatTo2D(data.solution.grid);
+        const meta = {
+            difficulty_band: data.difficulty_band,
+            difficulty_score: data.difficulty_score,
+            clue_count: data.data.clue_count,
+            puzzle_id: data.id,
+        };
+        state.board = new SudokuBoard('sudoku-board', puzzle2D, solution2D, meta);
+        state.board.renderMeta();
+        showToast(`New ${band} Sudoku loaded ✨`, 'success');
+    } catch (err) {
+        console.warn('API unavailable — falling back to demo puzzle:', err.message);
+        state.board = new SudokuBoard('sudoku-board');
+        showToast('Playing in offline mode 📵', 'default');
+    }
 }
 
 /* ── Timer ───────────────────────────────────────────── */

@@ -5,7 +5,7 @@
    and timer-integrated event logging.
 ───────────────────────────────────────────────────── */
 
-/* ── Demo puzzle (hardcoded for Day 1 — backend replaces this Day 2) */
+/* ── Offline fallback puzzle (shown if API is unreachable) ── */
 const DEMO_PUZZLE = [
     [5, 3, 0, 0, 7, 0, 0, 0, 0],
     [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -34,13 +34,28 @@ const DEMO_SOLUTION = [
     [3, 4, 5, 2, 8, 6, 1, 7, 9],
 ];
 
-/** SudokuBoard: manages state + DOM for one puzzle instance. */
+/**
+ * Convert a flat 81-element grid from the API into a 9×9 2D array.
+ * @param {number[]} flat - flat list of 81 ints (0 = empty)
+ * @returns {number[][]}
+ */
+function flatTo2D(flat) {
+    return Array.from({ length: 9 }, (_, r) => flat.slice(r * 9, r * 9 + 9));
+}
+
+/** SudokuBoard: manages state + DOM for one puzzle instance.
+ *
+ *  puzzle   — 9×9 array (0 = empty cell)   [default: offline DEMO]
+ *  solution — 9×9 array (fully solved)      [default: offline DEMO]
+ *  meta     — optional metadata from API (difficulty_band, clue_count, etc.)
+ */
 class SudokuBoard {
-    constructor(containerId, puzzle = DEMO_PUZZLE, solution = DEMO_SOLUTION) {
+    constructor(containerId, puzzle = DEMO_PUZZLE, solution = DEMO_SOLUTION, meta = {}) {
         this.container = document.getElementById(containerId);
         this.puzzle = puzzle.map(row => [...row]);
         this.grid = puzzle.map(row => [...row]);  // live player grid
         this.solution = solution;
+        this.meta = meta;
         this.selectedRow = null;
         this.selectedCol = null;
         this.isComplete = false;
@@ -49,6 +64,21 @@ class SudokuBoard {
         this.render();
         this.bindNumpad();
         this.bindKeyboard();
+    }
+
+    /** Display the difficulty badge if metadata is present. */
+    renderMeta() {
+        const badge = document.getElementById('difficulty-badge');
+        if (badge && this.meta.difficulty_band) {
+            const label = this.meta.difficulty_band.charAt(0).toUpperCase()
+                + this.meta.difficulty_band.slice(1);
+            badge.textContent = label;
+            badge.className = `difficulty-badge band-${this.meta.difficulty_band}`;
+        }
+        const clueEl = document.getElementById('clue-count');
+        if (clueEl && this.meta.clue_count != null) {
+            clueEl.textContent = `${this.meta.clue_count} clues`;
+        }
     }
 
     /** Build the 81-cell DOM grid. */

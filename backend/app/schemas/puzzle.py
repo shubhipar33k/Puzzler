@@ -9,6 +9,7 @@ class PuzzleOut(BaseModel):
     difficulty_score: float
     difficulty_band: str
     data: Dict[str, Any]
+    solution: Dict[str, Any]   # included so frontend can drive correctness checks
     is_validated: bool
     created_at: datetime.datetime
 
