@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puzzler — Puzzles that learn you</title>
+  <meta name="description" content="An AI-powered adaptive puzzle platform. Play daily word, number, and logic puzzles that adapt to your skill level." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+  <!-- ─── Navigation ─────────────────────────────────────────── -->
+  <nav class="nav" id="main-nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="#" id="nav-home">
+        <span class="brand-icon">◈</span>
+        <span class="brand-name">Puzzler</span>
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" href="#" data-page="home" id="link-home">Home</a>
+        <a class="nav-link" href="#" data-page="play" id="link-play">Play</a>
+        <a class="nav-link" href="#" data-page="dashboard" id="link-dashboard">Dashboard</a>
+      </div>
+      <div class="nav-actions" id="nav-actions">
+        <button class="btn btn-ghost" id="btn-login">Log in</button>
+        <button class="btn btn-primary" id="btn-register">Get Started</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── Pages ──────────────────────────────────────────────── -->
+  <main id="app">
+
+    <!-- HOME PAGE -->
+    <section class="page page-home active" id="page-home">
+      <div class="hero">
+        <div class="hero-content">
+          <div class="hero-badge">AI-Powered · Adaptive · Daily</div>
+          <h1 class="hero-title">Puzzles that<br><em>learn you.</em></h1>
+          <p class="hero-subtitle">
+            Word puzzles, Sudoku, and logic grids — all powered by AI that adapts to your skill, targets your weaknesses, and makes you sharper every day.
+          </p>
+          <div class="hero-cta">
+            <button class="btn btn-primary btn-lg" id="btn-play-now">Play Today's Puzzle</button>
+            <button class="btn btn-ghost btn-lg" id="btn-learn-more">How it works →</button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-value">3</span>
+              <span class="stat-label">Puzzle types</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">∞</span>
+              <span class="stat-label">AI-generated</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">1</span>
+              <span class="stat-label">Skill engine</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="puzzle-preview">
+            <div class="preview-label">Today's Sudoku</div>
+            <div class="mini-sudoku" id="hero-sudoku"></div>
+            <div class="preview-badge">
+              <span class="difficulty-dot medium"></span> Medium · 4m avg
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature cards -->
+      <div class="features" id="how-it-works">
+        <h2 class="section-title">How Puzzler learns you</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">🧠</div>
+            <h3>Adaptive Engine</h3>
+            <p>Tracks your speed, errors, and hesitation patterns to estimate your real skill level — then adjusts puzzle difficulty dynamically.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">✨</div>
+            <h3>AI Puzzle Generation</h3>
+            <p>New puzzles generated daily using constraint algorithms and LLMs. Every puzzle is validated to have a unique solution.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Weakness Targeting</h3>
+            <p>The system identifies your blind spots — slow patterns, confused letters, weak domains — and generates puzzles to train them.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔗</div>
+            <h3>Hybrid Mode</h3>
+            <p>Solve a mini Sudoku to unlock letters in a word puzzle. Puzzles interlock and reveal each other's secrets.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAY PAGE -->
+    <section class="page page-play" id="page-play">
+      <div class="play-header">
+        <div>
+          <h2 class="play-title">Today's Puzzle</h2>
+          <p class="play-subtitle" id="play-date">Loading...</p>
+        </div>
+        <div class="puzzle-type-tabs" id="puzzle-tabs">
+          <button class="tab-btn active" data-type="sudoku" id="tab-sudoku">Sudoku</button>
+          <button class="tab-btn" data-type="word" id="tab-word">Word</button>
+          <button class="tab-btn" data-type="logic" id="tab-logic">Logic</button>
+        </div>
+      </div>
+
+      <div class="play-area">
+        <!-- Timer + status bar -->
+        <div class="game-bar">
+          <div class="timer" id="game-timer">0:00</div>
+          <div class="game-status" id="game-status">
+            <span class="status-pill">Playing</span>
+          </div>
+          <div class="game-actions">
+            <button class="icon-btn" id="btn-hint" title="Get a hint">💡</button>
+            <button class="icon-btn" id="btn-reset" title="Reset puzzle">↺</button>
+          </div>
+        </div>
+
+        <!-- Sudoku board (active puzzle type) -->
+        <div id="sudoku-board-wrapper" class="puzzle-wrapper">
+          <div class="sudoku-board" id="sudoku-board"></div>
+          <div class="numpad" id="numpad">
+            <button class="num-btn" data-value="1">1</button>
+            <button class="num-btn" data-value="2">2</button>
+            <button class="num-btn" data-value="3">3</button>
+            <button class="num-btn" data-value="4">4</button>
+            <button class="num-btn" data-value="5">5</button>
+            <button class="num-btn" data-value="6">6</button>
+            <button class="num-btn" data-value="7">7</button>
+            <button class="num-btn" data-value="8">8</button>
+            <button class="num-btn" data-value="9">9</button>
+            <button class="num-btn erase-btn" data-value="0">⌫</button>
+          </div>
+        </div>
+
+        <!-- Word puzzle board (hidden by default) -->
+        <div id="word-board-wrapper" class="puzzle-wrapper hidden">
+          <div class="word-puzzle" id="word-board">
+            <p class="coming-soon">Word Puzzle coming Day 6 🚀</p>
+          </div>
+        </div>
+
+        <!-- Logic grid (hidden by default) -->
+        <div id="logic-board-wrapper" class="puzzle-wrapper hidden">
+          <div class="logic-puzzle" id="logic-board">
+            <p class="coming-soon">Logic Grid coming Day 6 🚀</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD PAGE -->
+    <section class="page page-dashboard" id="page-dashboard">
+      <div class="dashboard-header">
+        <h2 class="section-title">Your Dashboard</h2>
+        <div class="streak-badge" id="streak-badge">
+          <span class="streak-icon">🔥</span>
+          <span id="streak-count">—</span>
+          <span class="streak-label">day streak</span>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card accent-pink">
+          <div class="stat-card-label">Skill Score</div>
+          <div class="stat-card-value" id="stat-skill">—</div>
+          <div class="stat-card-sub">out of 100</div>
+        </div>
+        <div class="stat-card accent-green">
+          <div class="stat-card-label">Puzzles Solved</div>
+          <div class="stat-card-value" id="stat-solved">—</div>
+          <div class="stat-card-sub">all time</div>
+        </div>
+        <div class="stat-card accent-blue">
+          <div class="stat-card-label">Avg Time</div>
+          <div class="stat-card-value" id="stat-avg-time">—</div>
+          <div class="stat-card-sub">per puzzle</div>
+        </div>
+      </div>
+
+      <!-- Skill chart placeholder -->
+      <div class="skill-chart-card">
+        <h3>Skill Progress</h3>
+        <div class="chart-placeholder" id="skill-chart">
+          <p class="chart-empty-msg">Play your first puzzle to start tracking your skill curve.</p>
+        </div>
+      </div>
+
+      <!-- Weakness panel -->
+      <div class="weakness-panel">
+        <h3>Your Weakness Profile</h3>
+        <div class="weakness-grid" id="weakness-grid">
+          <div class="weakness-pill">Analyzing your patterns...</div>
+        </div>
+      </div>
+
+      <!-- Login prompt (shown when not authenticated) -->
+      <div class="auth-prompt" id="auth-prompt">
+        <div class="auth-prompt-inner">
+          <div class="auth-prompt-icon">◈</div>
+          <h3>Track your progress</h3>
+          <p>Create a free account to unlock your skill dashboard, streaks, and personalized puzzles.</p>
+          <button class="btn btn-primary" id="btn-signup-dashboard">Create Account</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTH MODAL -->
+    <div class="modal-overlay hidden" id="auth-modal">
+      <div class="modal">
+        <button class="modal-close" id="modal-close">✕</button>
+        <div class="modal-tabs">
+          <button class="modal-tab active" id="tab-login-modal">Log in</button>
+          <button class="modal-tab" id="tab-register-modal">Sign up</button>
+        </div>
+
+        <!-- Login form -->
+        <form class="auth-form" id="login-form">
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" placeholder="your_username" required />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" required />
+          </div>
+          <div class="form-error hidden" id="login-error"></div>
+          <button type="submit" class="btn btn-primary btn-full">Log in</button>
+        </form>
+
+        <!-- Register form -->
+        <form class="auth-form hidden" id="register-form">
+          <div class="form-group">
+            <label for="reg-username">Username</label>
+            <input type="text" id="reg-username" placeholder="your_username" required />
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input type="email" id="reg-email" placeholder="you@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" placeholder="••••••••" required />
+          </div>
+          <div class="form-error hidden" id="reg-error"></div>
+          <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ─── Toast notifications ─────────────────────────────── -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <footer class="footer">
+    <p>Puzzler · AI-powered adaptive puzzles · Built with ♥ as a portfolio project</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/sudoku.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
