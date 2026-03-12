@@ -11,8 +11,16 @@ from app.routers import auth, puzzle, session, player
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create DB tables on startup."""
+    """Startup: create DB tables, then seed the daily puzzle pool."""
     init_db()
+    # Seed the puzzle pool so /daily always returns a real puzzle
+    from app.database import SessionLocal
+    from app.services.puzzle_pool import ensure_daily_puzzle
+    db = SessionLocal()
+    try:
+        ensure_daily_puzzle(db)
+    finally:
+        db.close()
     yield
 
 

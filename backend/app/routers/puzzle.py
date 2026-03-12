@@ -53,6 +53,28 @@ def get_next_puzzle(user_id: str, db: DBSession = Depends(get_db)):
     return puzzle
 
 
+@router.get("/pool/status")
+def pool_status(db: DBSession = Depends(get_db)):
+    """Return per-band puzzle counts and today's daily puzzle IDs.
+
+    Useful for monitoring and admin dashboards.
+    """
+    from app.services.puzzle_pool import get_pool_status
+    return get_pool_status(db)
+
+
+@router.post("/pool/seed", status_code=202)
+def pool_seed(db: DBSession = Depends(get_db)):
+    """Manually trigger a pool seed (admin / dev use).
+
+    Generates puzzles for any bands under the pool size target
+    and marks daily puzzles for today.
+    """
+    from app.services.puzzle_pool import seed_daily_pool
+    generated = seed_daily_pool(db)
+    return {"seeded": generated}
+
+
 @router.post("/generate", response_model=PuzzleOut, status_code=201)
 def generate_puzzle(payload: PuzzleGenerateRequest, db: DBSession = Depends(get_db)):
     """Generate and store a new puzzle.
@@ -64,7 +86,7 @@ def generate_puzzle(payload: PuzzleGenerateRequest, db: DBSession = Depends(get_
         from app.engines.sudoku import generate_sudoku
         result = generate_sudoku(payload.difficulty_band)
         puzzle_data = {
-            "grid": result["puzzle"],           # flat list of 81 ints (0 = empty)
+            "grid": result["puzzle"],
             "clue_count": result["clue_count"],
             "difficulty_band": result["difficulty_band"],
         }
@@ -73,11 +95,10 @@ def generate_puzzle(payload: PuzzleGenerateRequest, db: DBSession = Depends(get_
             difficulty_score=result["difficulty_score"],
             difficulty_band=result["difficulty_band"],
             data=puzzle_data,
-            solution={"grid": result["solution"]},  # flat list of 81 ints
+            solution={"grid": result["solution"]},
             is_validated=True,
         )
     else:
-        # Placeholder for word / crossword / logic (Day 6+)
         placeholder_data = {
             "message": f"Puzzle generation for type='{payload.type}' is coming on Day 6!",
             "type": payload.type,

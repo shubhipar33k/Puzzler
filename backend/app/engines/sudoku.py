@@ -359,3 +359,48 @@ def generate_sudoku(difficulty_band: str = "medium", max_retries: int = 5) -> di
             best_result = result
 
     return best_result
+
+
+# ── Calibration ───────────────────────────────────────────────────────────────
+
+def calibrate_scorer(
+    n: int = 20,
+    bands: list[str] | None = None,
+) -> dict[str, dict]:
+    """Generate `n` puzzles per band and compute difficulty score statistics.
+
+    Returns a dict keyed by band with keys:
+        scores    — list of raw float scores
+        min       — minimum score
+        max       — maximum score
+        mean      — mean score
+        clues_mean— mean clue count
+
+    Use this offline to validate / tune the band_from_score() thresholds.
+
+    Example::
+        from app.engines.sudoku import calibrate_scorer
+        stats = calibrate_scorer(n=10)
+        for band, s in stats.items():
+            print(f"{band}: mean={s['mean']:.3f} [{s['min']:.3f}–{s['max']:.3f}]")
+    """
+    if bands is None:
+        bands = ALL_BANDS
+
+    results: dict[str, dict] = {}
+    for band in bands:
+        scores: list[float] = []
+        clues: list[int] = []
+        for _ in range(n):
+            r = generate_sudoku(band)
+            scores.append(r["difficulty_score"])
+            clues.append(r["clue_count"])
+        results[band] = {
+            "scores": scores,
+            "min": min(scores),
+            "max": max(scores),
+            "mean": round(sum(scores) / len(scores), 4),
+            "clues_mean": round(sum(clues) / len(clues), 1),
+        }
+    return results
+
