@@ -104,21 +104,43 @@ async function initPlayPage() {
         });
     }
 
-    // Listen for sudoku events
+    // Listen for sudoku events — wire to session API (fire-and-forget)
     document.addEventListener('sudoku:error', (e) => {
-        // Will be sent to session API on Day 5
-        console.log('Error at', e.detail);
+        if (state.sessionId) {
+            const { row, col, value } = e.detail || {};
+            const cellId = (row != null && col != null) ? `${row},${col}` : null;
+            apiLogEvent(state.sessionId, 'error', cellId, String(value ?? '')).catch(() => { });
+        }
     });
 
-    document.addEventListener('sudoku:hint', () => {
-        console.log('Hint used');
+    document.addEventListener('sudoku:hint', (e) => {
+        if (state.sessionId) {
+            const { row, col } = e.detail || {};
+            const cellId = (row != null && col != null) ? `${row},${col}` : null;
+            apiLogEvent(state.sessionId, 'hint', cellId).catch(() => { });
+        }
     });
 
-    document.addEventListener('sudoku:complete', () => {
+    document.addEventListener('sudoku:complete', async () => {
         stopTimer();
         const time = state.elapsedSeconds;
         $('game-status').innerHTML = '<span class="status-pill" style="background:var(--accent-green-bg);color:#3a7a36;border-color:var(--accent-green)">✓ Solved!</span>';
         showToast(`🎉 Solved in ${formatTime(time)}!`, 'success');
+
+        // Close the session and update skill score
+        if (state.sessionId) {
+            try {
+                const result = await apiCompleteSession(state.sessionId, time, true);
+                if (result?.skill_score_after != null) {
+                    const delta = (result.skill_score_after - result.skill_score_before).toFixed(1);
+                    const sign = delta >= 0 ? '+' : '';
+                    showToast(`⭐ Skill: ${result.skill_score_after.toFixed(1)} (${sign}${delta})`, 'success');
+                }
+            } catch (err) {
+                console.warn('Could not record session completion:', err.message);
+            }
+            state.sessionId = null;
+        }
     });
 }
 
@@ -138,7 +160,6 @@ async function loadNewPuzzle(band = 'medium') {
 
     try {
         const data = await apiGeneratePuzzle('sudoku', band);
-        // data.data.grid is a flat 81-element list from the API
         const puzzle2D = flatTo2D(data.data.grid);
         const solution2D = flatTo2D(data.solution.grid);
         const meta = {
@@ -150,9 +171,22 @@ async function loadNewPuzzle(band = 'medium') {
         state.board = new SudokuBoard('sudoku-board', puzzle2D, solution2D, meta);
         state.board.renderMeta();
         showToast(`New ${band} Sudoku loaded ✨`, 'success');
+
+        // Start a session for logged-in users (fire-and-forget if no user)
+        const user = getCurrentUser();
+        if (user) {
+            try {
+                const sess = await apiStartSession(user.id, data.id);
+                state.sessionId = sess?.id ?? null;
+            } catch (e) {
+                console.warn('Could not start session:', e.message);
+                state.sessionId = null;
+            }
+        }
     } catch (err) {
         console.warn('API unavailable — falling back to demo puzzle:', err.message);
         state.board = new SudokuBoard('sudoku-board');
+        state.sessionId = null;
         showToast('Playing in offline mode 📵', 'default');
     }
 }

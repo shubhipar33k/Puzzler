@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session as DBSession
 from app.database import get_db
 from app.models.session import Session, PlayerMetric
 from app.models.puzzle import Puzzle
+from app.models.user import User
 from app.schemas.session import (
     SessionStart,
     SessionStartOut,
@@ -64,17 +65,37 @@ def log_event(session_id: str, payload: SessionEvent, db: DBSession = Depends(ge
 def complete_session(
     session_id: str, payload: SessionComplete, db: DBSession = Depends(get_db)
 ):
-    """Mark session complete and trigger ADE skill score update (stubbed)."""
+    """Mark session complete and update player skill score + streak."""
     session = db.query(Session).filter(Session.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    if session.is_complete:
+    if session.is_complete and session.completed_at is not None:
         raise HTTPException(status_code=400, detail="Session already completed")
 
     session.is_complete = payload.is_correct
     session.time_seconds = payload.time_seconds
     session.completed_at = datetime.datetime.utcnow()
-    # TODO Day 8: call ADE to update skill score
     db.commit()
     db.refresh(session)
+
+    # ── Skill rating update ───────────────────────────────────────────────
+    user = db.query(User).filter(User.id == session.user_id).first()
+    puzzle = db.query(Puzzle).filter(Puzzle.id == session.puzzle_id).first()
+
+    if user and puzzle:
+        try:
+            from app.services.skill_rating import update_skill, update_streak
+            score_before, score_after = update_skill(user, session, puzzle, db)
+            session.skill_score_before = score_before
+            session.skill_score_after = score_after
+            db.commit()
+            db.refresh(session)
+
+            # Update play streak
+            update_streak(user, db)
+        except Exception as exc:
+            # Skill update failure should not break the session completion
+            import logging
+            logging.getLogger(__name__).error("Skill update failed: %s", exc)
+
     return session
