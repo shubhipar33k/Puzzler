@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Puzzler — Puzzles that learn you</title>
-  <meta name="description" content="An AI-powered adaptive puzzle platform. Play daily word, number, and logic puzzles that adapt to your skill level." />
+  <meta name="description"
+    content="An AI-powered adaptive puzzle platform. Play daily word, number, and logic puzzles that adapt to your skill level." />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap"
+    rel="stylesheet" />
 
   <link rel="stylesheet" href="css/main.css" />
 </head>
+
 <body>
 
   <!-- ─── Navigation ─────────────────────────────────────────── -->
@@ -44,7 +49,8 @@
           <div class="hero-badge">AI-Powered · Adaptive · Daily</div>
           <h1 class="hero-title">Puzzles that<br><em>learn you.</em></h1>
           <p class="hero-subtitle">
-            Word puzzles, Sudoku, and logic grids — all powered by AI that adapts to your skill, targets your weaknesses, and makes you sharper every day.
+            Word puzzles, Sudoku, and logic grids — all powered by AI that adapts to your skill, targets your
+            weaknesses, and makes you sharper every day.
           </p>
           <div class="hero-cta">
             <button class="btn btn-primary btn-lg" id="btn-play-now">Play Today's Puzzle</button>
@@ -83,22 +89,26 @@
           <div class="feature-card">
             <div class="feature-icon">🧠</div>
             <h3>Adaptive Engine</h3>
-            <p>Tracks your speed, errors, and hesitation patterns to estimate your real skill level — then adjusts puzzle difficulty dynamically.</p>
+            <p>Tracks your speed, errors, and hesitation patterns to estimate your real skill level — then adjusts
+              puzzle difficulty dynamically.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">✨</div>
             <h3>AI Puzzle Generation</h3>
-            <p>New puzzles generated daily using constraint algorithms and LLMs. Every puzzle is validated to have a unique solution.</p>
+            <p>New puzzles generated daily using constraint algorithms and LLMs. Every puzzle is validated to have a
+              unique solution.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">🎯</div>
             <h3>Weakness Targeting</h3>
-            <p>The system identifies your blind spots — slow patterns, confused letters, weak domains — and generates puzzles to train them.</p>
+            <p>The system identifies your blind spots — slow patterns, confused letters, weak domains — and generates
+              puzzles to train them.</p>
           </div>
           <div class="feature-card">
             <div class="feature-icon">🔗</div>
             <h3>Hybrid Mode</h3>
-            <p>Solve a mini Sudoku to unlock letters in a word puzzle. Puzzles interlock and reveal each other's secrets.</p>
+            <p>Solve a mini Sudoku to unlock letters in a word puzzle. Puzzles interlock and reveal each other's
+              secrets.</p>
           </div>
         </div>
       </div>
@@ -193,7 +203,12 @@
         </div>
       </div>
 
-      <!-- Skill chart placeholder -->
+      <!-- Animated skill meter -->
+      <div class="skill-meter-card">
+        <div id="skill-meter"></div>
+      </div>
+
+      <!-- Skill chart -->
       <div class="skill-chart-card">
         <h3>Skill Progress</h3>
         <div class="chart-placeholder" id="skill-chart">
@@ -206,6 +221,14 @@
         <h3>Your Weakness Profile</h3>
         <div class="weakness-grid" id="weakness-grid">
           <div class="weakness-pill">Analyzing your patterns...</div>
+        </div>
+      </div>
+
+      <!-- Session history feed -->
+      <div class="history-card">
+        <h3>Recent Sessions</h3>
+        <div id="history-feed">
+          <p class="chart-empty-msg">No sessions yet. Play a puzzle!</p>
         </div>
       </div>
 
@@ -274,6 +297,8 @@
 
   <script src="js/api.js"></script>
   <script src="js/sudoku.js"></script>
+  <script src="js/dashboard.js"></script>
   <script src="js/app.js"></script>
 </body>
+
 </html>

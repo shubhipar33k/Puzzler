@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import datetime
 
 
@@ -56,7 +56,17 @@ class PlayerProfile(BaseModel):
 
 class WeaknessReport(BaseModel):
     user_id: str
-    weak_letters: list[str]
-    weak_domains: list[str]
+    weak_letters: List[str]
+    weak_domains: List[str]
     avg_hesitation_seconds: float
     recommended_focus: str
+
+
+class SkillHistoryPoint(BaseModel):
+    skill_score: float
+    recorded_at: datetime.datetime
+
+
+class SkillHistoryOut(BaseModel):
+    points: List[SkillHistoryPoint]
+    current: float

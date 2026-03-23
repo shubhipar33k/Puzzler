@@ -220,24 +220,8 @@ function resetTimer() {
 
 /* ── Dashboard page ──────────────────────────────────── */
 async function initDashboardPage() {
-    const user = getCurrentUser();
-    if (!user) {
-        $('auth-prompt').classList.remove('hidden');
-        return;
-    }
-    $('auth-prompt').classList.add('hidden');
-
-    try {
-        const profile = await apiGetProfile(user.id);
-        $('stat-skill').textContent = Math.round(profile.current_skill_score);
-        $('stat-solved').textContent = profile.sessions_completed;
-        $('streak-count').textContent = profile.streak_days;
-        if (profile.average_time_seconds) {
-            $('stat-avg-time').textContent = formatTime(Math.round(profile.average_time_seconds));
-        }
-    } catch (e) {
-        console.warn('Profile fetch failed:', e.message);
-    }
+    // Delegate to the full analytics renderer in dashboard.js
+    await initDashboard();
 }
 
 /* ── Auth modal ──────────────────────────────────────── */

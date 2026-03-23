@@ -118,3 +118,8 @@ async function apiGetWeaknesses(userId) {
 async function apiGetHistory(userId) {
     return apiFetch(`/player/history?user_id=${userId}`);
 }
+
+async function apiGetSkillHistory(userId, limit = 50) {
+    return apiFetch(`/player/skill-history?user_id=${userId}&limit=${limit}`);
+}
+
