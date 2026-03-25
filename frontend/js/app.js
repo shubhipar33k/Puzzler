@@ -12,6 +12,7 @@ const state = {
     elapsedSeconds: 0,
     hintCount: 0,
     board: null,
+    wordBoard: null,
     currentDifficultyBand: 'medium',
 };
 
@@ -64,13 +65,18 @@ async function initPlayPage() {
 
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const type = btn.dataset.type;
             $('sudoku-board-wrapper').classList.toggle('hidden', type !== 'sudoku');
             $('word-board-wrapper').classList.toggle('hidden', type !== 'word');
             $('logic-board-wrapper').classList.toggle('hidden', type !== 'logic');
+
+            // Load word puzzle on first switch to word tab
+            if (type === 'word' && !state.wordBoard) {
+                await loadNewWordPuzzle(state.currentDifficultyBand || 'medium');
+            }
         });
     });
 
@@ -142,6 +148,78 @@ async function initPlayPage() {
             state.sessionId = null;
         }
     });
+
+    // Word puzzle events
+    document.addEventListener('word:wrong', (e) => {
+        if (state.sessionId) {
+            const { letter, wrongCount } = e.detail || {};
+            apiLogEvent(state.sessionId, 'error', null, letter, { wrong_count: wrongCount }).catch(() => { });
+        }
+    });
+
+    document.addEventListener('word:correct', async () => {
+        stopTimer();
+        const time = state.elapsedSeconds;
+        $('game-status').innerHTML = '<span class="status-pill" style="background:var(--accent-green-bg);color:#3a7a36;border-color:var(--accent-green)">✓ Solved!</span>';
+        showToast('🎉 Word solved!', 'success');
+        if (state.sessionId) {
+            try {
+                const result = await apiCompleteSession(state.sessionId, time, true);
+                if (result?.skill_score_after != null) {
+                    const delta = (result.skill_score_after - result.skill_score_before).toFixed(1);
+                    const sign = delta >= 0 ? '+' : '';
+                    showToast(`⭐ Skill: ${result.skill_score_after.toFixed(1)} (${sign}${delta})`, 'success');
+                }
+            } catch (err) {
+                console.warn('Could not record word completion:', err.message);
+            }
+            state.sessionId = null;
+        }
+    });
+
+    document.addEventListener('word:failed', (e) => {
+        stopTimer();
+        $('game-status').innerHTML = '<span class="status-pill" style="background:#fff0f0;color:#c0392b;border-color:#e57373">✗ Failed</span>';
+        showToast(`💀 The word was: ${(e.detail?.word || '').toUpperCase()}`, 'error');
+        if (state.sessionId) {
+            apiCompleteSession(state.sessionId, state.elapsedSeconds, false).catch(() => { });
+            state.sessionId = null;
+        }
+    });
+}
+
+/**
+ * Fetch a word puzzle from the API and initialise a WordBoard.
+ * @param {string} band - difficulty band
+ */
+async function loadNewWordPuzzle(band = 'medium') {
+    state.currentDifficultyBand = band;
+    const boardEl = $('word-board');
+    if (boardEl) boardEl.innerHTML = '<p class="chart-empty-msg">Generating word puzzle…</p>';
+
+    try {
+        const data = await apiFetch(`/puzzle/generate`, {
+            method: 'POST',
+            body: JSON.stringify({ type: 'word', difficulty_band: band }),
+        });
+        const meta = { difficulty_band: data.difficulty_band, puzzle_id: data.id };
+        state.wordBoard = new WordBoard('word-board', data.data, data.solution, meta);
+        showToast(`New ${band} word puzzle loaded ✨`, 'success');
+
+        const user = getCurrentUser();
+        if (user) {
+            try {
+                const sess = await apiStartSession(user.id, data.id);
+                state.sessionId = sess?.id ?? null;
+            } catch (e) {
+                console.warn('Could not start word session:', e.message);
+                state.sessionId = null;
+            }
+        }
+    } catch (err) {
+        console.warn('Word puzzle load failed:', err.message);
+        if (boardEl) boardEl.innerHTML = '<p class="chart-empty-msg">Could not load word puzzle. Is the API running?</p>';
+    }
 }
 
 /**

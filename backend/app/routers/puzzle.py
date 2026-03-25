@@ -98,9 +98,28 @@ def generate_puzzle(payload: PuzzleGenerateRequest, db: DBSession = Depends(get_
             solution={"grid": result["solution"]},
             is_validated=True,
         )
+    elif payload.type == "word":
+        from app.engines.word import generate_word_puzzle
+        result = generate_word_puzzle(payload.difficulty_band, theme=payload.theme)
+        puzzle_data = {
+            "masked":         result["masked"],
+            "hidden_indices": result["hidden_indices"],
+            "hint":           result["hint"],
+            "letter_count":   result["letter_count"],
+            "mask_count":     result["mask_count"],
+            "difficulty_band": result["difficulty_band"],
+        }
+        puzzle = Puzzle(
+            type="word",
+            difficulty_score=result["difficulty_score"],
+            difficulty_band=result["difficulty_band"],
+            data=puzzle_data,
+            solution={"word": result["word"]},
+            is_validated=True,
+        )
     else:
         placeholder_data = {
-            "message": f"Puzzle generation for type='{payload.type}' is coming on Day 6!",
+            "message": f"Puzzle generation for type='{payload.type}' is coming soon!",
             "type": payload.type,
             "difficulty_band": payload.difficulty_band,
         }
