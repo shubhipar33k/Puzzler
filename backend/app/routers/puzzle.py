@@ -117,6 +117,25 @@ def generate_puzzle(payload: PuzzleGenerateRequest, db: DBSession = Depends(get_
             solution={"word": result["word"]},
             is_validated=True,
         )
+    elif payload.type == "logic":
+        from app.engines.logic import generate_logic_puzzle
+        result = generate_logic_puzzle(payload.difficulty_band, theme=payload.theme)
+        puzzle_data = {
+            "categories":  result["categories"],
+            "items":       result["items"],
+            "clues":       result["clues"],
+            "grid_size":   result["grid_size"],
+            "clue_count":  result["clue_count"],
+            "difficulty_band": result["difficulty_band"],
+        }
+        puzzle = Puzzle(
+            type="logic",
+            difficulty_score=result["difficulty_score"],
+            difficulty_band=result["difficulty_band"],
+            data=puzzle_data,
+            solution={"assignments": result["solution"]},
+            is_validated=True,
+        )
     else:
         placeholder_data = {
             "message": f"Puzzle generation for type='{payload.type}' is coming soon!",

@@ -1512,3 +1512,155 @@ img {
   cursor: default;
   opacity: 0.7;
 }
+
+/* ── Logic Grid ───────────────────────────────────────────────────────────── */
+.logic-puzzle {
+  width: 100%;
+}
+
+.logic-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.logic-band-pill {
+  background: var(--accent-blue-bg);
+  border: 1px solid var(--accent-blue);
+  color: #2a6080;
+  padding: 2px var(--space-3);
+  border-radius: var(--r-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.logic-cats {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.logic-vs {
+  color: var(--accent-blue);
+  margin: 0 4px;
+}
+
+.logic-layout {
+  display: flex;
+  gap: var(--space-6);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* Grid table */
+.logic-grid-wrap {
+  flex: 1;
+  min-width: 220px;
+}
+
+.logic-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: var(--space-4);
+}
+
+.logic-table th,
+.logic-table td {
+  border: 1.5px solid var(--border-dark);
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.logic-corner {
+  background: var(--bg-alt);
+}
+
+.logic-col-head {
+  background: var(--accent-blue-bg);
+  color: #2a6080;
+  font-weight: 700;
+}
+
+.logic-row-head {
+  background: var(--accent-pink-bg);
+  color: #c06080;
+  font-weight: 700;
+  text-align: left;
+}
+
+.logic-cell {
+  cursor: pointer;
+  min-width: 40px;
+  height: 40px;
+  background: var(--surface);
+  transition: background var(--t-fast);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.logic-cell:hover {
+  background: var(--bg-alt);
+}
+
+.logic-cell.mark-yes {
+  background: var(--accent-green-bg);
+  color: #3a7a36;
+  border-color: var(--accent-green);
+}
+
+.logic-cell.mark-no {
+  background: #fff0f0;
+  color: #c0392b;
+  border-color: #e57373;
+}
+
+.logic-result {
+  margin-top: var(--space-3);
+  font-size: 0.95rem;
+}
+
+.logic-win {
+  color: #3a7a36;
+  font-weight: 700;
+}
+
+.logic-error {
+  color: var(--error);
+  font-weight: 700;
+}
+
+/* Clue panel */
+.logic-clue-panel {
+  min-width: 200px;
+  max-width: 300px;
+  flex: 1;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--space-4);
+}
+
+.logic-clue-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.logic-clue-list {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.logic-clue {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  line-height: 1.5;
+}

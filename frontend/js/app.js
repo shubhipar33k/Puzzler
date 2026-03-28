@@ -13,6 +13,7 @@ const state = {
     hintCount: 0,
     board: null,
     wordBoard: null,
+    logicBoard: null,
     currentDifficultyBand: 'medium',
 };
 
@@ -76,6 +77,10 @@ async function initPlayPage() {
             // Load word puzzle on first switch to word tab
             if (type === 'word' && !state.wordBoard) {
                 await loadNewWordPuzzle(state.currentDifficultyBand || 'medium');
+            }
+            // Load logic puzzle on first switch to logic tab
+            if (type === 'logic' && !state.logicBoard) {
+                await loadNewLogicPuzzle(state.currentDifficultyBand || 'medium');
             }
         });
     });
@@ -186,6 +191,68 @@ async function initPlayPage() {
             state.sessionId = null;
         }
     });
+
+    // Logic grid events
+    document.addEventListener('logic:correct', async () => {
+        stopTimer();
+        const time = state.elapsedSeconds;
+        $('game-status').innerHTML = '<span class="status-pill" style="background:var(--accent-green-bg);color:#3a7a36;border-color:var(--accent-green)">✓ Solved!</span>';
+        showToast('🎉 Logic grid solved!', 'success');
+        if (state.sessionId) {
+            try {
+                const result = await apiCompleteSession(state.sessionId, time, true);
+                if (result?.skill_score_after != null) {
+                    const delta = (result.skill_score_after - result.skill_score_before).toFixed(1);
+                    const sign = delta >= 0 ? '+' : '';
+                    showToast(`⭐ Skill: ${result.skill_score_after.toFixed(1)} (${sign}${delta})`, 'success');
+                }
+            } catch (err) {
+                console.warn('Could not record logic completion:', err.message);
+            }
+            state.sessionId = null;
+        }
+    });
+
+    document.addEventListener('logic:error', () => {
+        showToast('❌ Some deductions are wrong — keep trying!', 'error');
+        if (state.sessionId) {
+            apiLogEvent(state.sessionId, 'error', null, null, {}).catch(() => { });
+        }
+    });
+}
+
+/**
+ * Fetch a logic grid puzzle from the API and initialise a LogicBoard.
+ * @param {string} band - difficulty band
+ */
+async function loadNewLogicPuzzle(band = 'medium') {
+    state.currentDifficultyBand = band;
+    const boardEl = $('logic-board');
+    if (boardEl) boardEl.innerHTML = '<p class="chart-empty-msg">Generating logic grid…</p>';
+
+    try {
+        const data = await apiFetch('/puzzle/generate', {
+            method: 'POST',
+            body: JSON.stringify({ type: 'logic', difficulty_band: band }),
+        });
+        const meta = { difficulty_band: data.difficulty_band, puzzle_id: data.id };
+        state.logicBoard = new LogicBoard('logic-board', data.data, data.solution, meta);
+        showToast(`New ${band} logic grid loaded ✨`, 'success');
+
+        const user = getCurrentUser();
+        if (user) {
+            try {
+                const sess = await apiStartSession(user.id, data.id);
+                state.sessionId = sess?.id ?? null;
+            } catch (e) {
+                console.warn('Could not start logic session:', e.message);
+                state.sessionId = null;
+            }
+        }
+    } catch (err) {
+        console.warn('Logic puzzle load failed:', err.message);
+        if (boardEl) boardEl.innerHTML = '<p class="chart-empty-msg">Could not load logic grid. Is the API running?</p>';
+    }
 }
 
 /**
